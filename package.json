@@ -1,0 +1,12 @@
+{
+  "name": "colorpicker",
+  "version": "1.0.0",
+  "description": "Simple color picker that doesn't use canvas",
+  "main": "main.js",
+  "author": "Mohamed H @MohIceAge",
+  "license": "MIT",
+  "devDependencies": {
+    "uglifyjs-webpack-plugin": "^1.0.1",
+    "webpack": "^3.8.1"
+  }
+}
