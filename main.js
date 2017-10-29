@@ -178,4 +178,26 @@ module.exports = class {
     if ( previousColor !== this.color ) this._onchange(this.color)
   }
   get color() {return this._color.toUpperCase()}
+  set color(c) {
+    const rgb = [c.slice(1,3), c.slice(3,5), c.slice(-2)].map(e => parseInt(e, 16))
+    const table = [[0xff,0x00,0x00],[0xff,0xff,0x00],[0x00,0xff,0x00],[0x00,0xff,0xff],[0x00,0x00,0xff],[0xff,0x00,0xff],[0xff,0x00,0x00]]    
+    const ordIndex = [...rgb.keys()].sort((a,b) => rgb[a] < rgb[b])
+    const ty = 1 - rgb[ordIndex[0]]/255
+    const tx = rgb[ordIndex[0]] > 0 ? 1 - rgb[ordIndex[2]]/rgb[ordIndex[0]] : 0
+    const r = table.findIndex(e => e[ordIndex[0]] == 0xff)
+    const X = (ty < 1 && tx > 0) ? (rgb[ordIndex[1]]/(1-ty)-255)/tx + 0xff : 0
+
+    const curx = (r + X / 255+1) * this._width / 6
+    const cirx = ty * this._height * 19/20 + "px"
+    const ciry = tx * this._width + "px"
+
+    console.log(curx, cirx, ciry ,X , r, ordIndex)
+
+    this._slide(curx)
+
+    this.els.circle.style.top   = cirx
+    this.els.circle.style.left  = ciry
+
+    this._updateColor()
+  }
 }

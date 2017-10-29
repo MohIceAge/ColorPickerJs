@@ -1,7 +1,7 @@
 const ColorPicker = require ('./main')
 const ColorValueDiv = document.getElementById('color-value')
 
-console.log(new ColorPicker (document.getElementById('colorpicker'), {
+const picker = new ColorPicker (document.getElementById('colorpicker'), {
   width: 640,
   height: 360,
   onchange: e => {
@@ -12,4 +12,6 @@ console.log(new ColorPicker (document.getElementById('colorpicker'), {
       if (gray > 0.5) ColorValueDiv.style.color = "black"
       else ColorValueDiv.style.color = "white"
     }
-}))
+})
+
+picker.color = "#DA00FF"

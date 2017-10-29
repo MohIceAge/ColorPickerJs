@@ -8,6 +8,6 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
          filename: 'bundle.js'
      },
      plugins: [
-        //new UglifyJSPlugin()
+        new UglifyJSPlugin()
      ]
  };
