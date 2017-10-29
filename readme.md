@@ -11,4 +11,4 @@ let picker = new ColorPicker (element, {
 
 ```
 ## Result
-<p align="center"><img src ="screenshot.png" /></p>
+<p align="center"><img src ="https://mohiceage.github.io/ColorPickerJs/screenshot.png" /></p>
