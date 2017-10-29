@@ -1,6 +1,6 @@
 {
   "name": "simplecolorpicker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple color picker that doesn't use canvas",
   "main": "main.js",
   "author": "Mohamed H @MohIceAge",
