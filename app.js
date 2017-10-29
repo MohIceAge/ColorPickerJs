@@ -14,4 +14,4 @@ const picker = new ColorPicker (document.getElementById('colorpicker'), {
     }
 })
 
-picker.color = "#DA00FF"
+picker.color = "#9E593B"
