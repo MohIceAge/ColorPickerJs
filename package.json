@@ -1,5 +1,5 @@
 {
-  "name": "colorpicker",
+  "name": "simplecolorpicker",
   "version": "1.0.0",
   "description": "Simple color picker that doesn't use canvas",
   "main": "main.js",
