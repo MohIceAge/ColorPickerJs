@@ -68,12 +68,21 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 const ColorPicker = __webpack_require__ (1)
+const ColorValueDiv = document.getElementById('color-value')
 
-new ColorPicker (document.getElementById('colorpicker'), {
+console.log(new ColorPicker (document.getElementById('colorpicker'), {
   width: 640,
   height: 360,
-  onchange: e => console.log(e)
-})
+  onchange: e => {
+      ColorValueDiv.style.backgroundColor = ColorValueDiv.innerText = e
+      const [red, green, blue] = [e.slice(-6,-4),e.slice(-4,-2),e.slice(-2)]
+        .map (e=>parseInt(e, 16))
+      let gray = (red * 0.3 + green * 0.59 + blue * 0.11)/255
+      console.log (gray)
+      if (gray > 0.5) ColorValueDiv.style.color = "black"
+      else ColorValueDiv.style.color = "white"
+    }
+}))
 
 /***/ }),
 /* 1 */
@@ -86,22 +95,28 @@ __webpack_require__ (3)
 
 module.exports = class {
   constructor(element, options) {
-    this.element = element
-    this.width = options.width > 0 ? options.width : 300
-    this.height = options.height > 0 ? options.height : 200
-    this.onchange = options.onchange != null ? options.onchange : e=>e
-    this.cursorColor = "#ff0000"
-    this.color = "#ff0000"
-    this.doc = element.ownerDocument
-    const callbackSlide = e => this.slide(e.clientX)
-    const callbackColor = e => this.selectColor(e.clientX, e.clientY)
+    this._element = element
+    this._width = options.width > 0 ? options.width : 300
+    this._height = options.height > 0 ? options.height : 200
+    this._onchange = options.onchange != null ? options.onchange : e=>e
+    this._cursorColor = "#ff0000"
+    this._color = "#ff0000"
+    this._doc = element.ownerDocument
+    const getLocalCoords = (e, target = e.target) => {
+      const {top, left} = target.getBoundingClientRect()
+      console.log(e,{top,left}, target.getBoundingClientRect())
+      return [e.x-left, e.y-top]
+    }
+    const callbackSlide = e => this._slide      .apply(this, getLocalCoords(e, this.els.slider))
+    const callbackColor = e => this._selectColor.apply(this, getLocalCoords(e, this.els.grid))
     
     const { object, elements } = html({
       style: {
-        width:this.width+"px", height:this.height+"px"
+        width:this._width+"px", height:this._height+"px", position: "relative"
       },
       children: [
         {
+          id: "grid",
           style: {
             width: "100%", height: "95%",
             position: "relative"
@@ -109,31 +124,32 @@ module.exports = class {
           onclick: callbackColor,
           onmousedown: e => {
             const rel = e => {
-              this.doc.removeEventListener ("mousemove", callbackColor)
-              this.doc.removeEventListener ("mouseup", rel)
+              this._doc.removeEventListener ("mousemove", callbackColor)
+              this._doc.removeEventListener ("mouseup", rel)
             }
-            this.doc.addEventListener ("mousemove", callbackColor)
-            this.doc.addEventListener ("mouseup", rel)
+            this._doc.addEventListener ("mousemove", callbackColor)
+            this._doc.addEventListener ("mouseup", rel)
           },
           children: [
             {
               id: "circle",
               style: {
                 position: "absolute",
-                width: "10px", height: "10px",
-                zIndex: "1", left: "100%", 
+                width: "16px", height: "16px",
+                zIndex: "1", left: "100%", top: "0",
+                pointerEvents: "none",
               },
               children: [
                 {
                   style: {
                     position: "absolute",
-                    height: "100%",
-                    width: "100%",
+                    height: "10px",
+                    width: "10px",
                     background: "rgba(224,224,224,.5)",
-                    border: "solid 1px #202020",
-                    top:"-5px",
-                    left:"-5px",
-                    borderRadius: "10px"
+                    border: "solid 3px #202020",
+                    top:"-8px",
+                    left:"-8px",
+                    borderRadius: "8px"
                   }
                 }
               ]
@@ -156,17 +172,18 @@ module.exports = class {
           ]
         },
         {
+          id: "slider",
           style: {
             background: linearGradient ("left, #f00 0%, #ff0 16.666%, #0f0 33.333%, #0ff 50%, #00f 66.666%, #f0f 83.333%, #f00 100%"),
             width: "100%", height: "5%",position: "relative"     
           },
           onmousedown: e => {
             const rel = e => {
-              this.doc.removeEventListener ("mousemove", callbackSlide)
-              this.doc.removeEventListener ("mouseup", rel)
+              this._doc.removeEventListener ("mousemove", callbackSlide)
+              this._doc.removeEventListener ("mouseup", rel)
             }
-            this.doc.addEventListener ("mousemove", callbackSlide)
-            this.doc.addEventListener ("mouseup", rel)
+            this._doc.addEventListener ("mousemove", callbackSlide)
+            this._doc.addEventListener ("mouseup", rel)
           },
           onclick: callbackSlide, id: "alt",
           children: [
@@ -177,6 +194,7 @@ module.exports = class {
                 width: "3px",
                 background: "#202020",
                 position: "absolute",
+                pointerEvents: "none",
                 left: "0"
               },
               children: [
@@ -190,6 +208,7 @@ module.exports = class {
                     backgroundColor: "red",
                     top: "calc(100% - 5px)",
                     left: "-9px",
+                    pointerEvents: "auto",
                   }
                 }
               ]
@@ -197,55 +216,57 @@ module.exports = class {
           ]
         },
       ],
-    }, this.doc)
+    }, this._doc)
     
-    this.element.appendChild(object)
+    this._element.appendChild(object)
     this.els = elements
     
   }
-  slide (cx) {
-    const x = cx > 0 ? (cx < this.width ? cx : this.width) : 0
+  _slide (cx) {
+    const x = cx > 0 ? (cx < this._width ? cx : this._width) : 0
     const table = [[0xff,0x00,0x00],[0xff,0xff,0x00],[0x00,0xff,0x00],[0x00,0xff,0xff],[0x00,0x00,0xff],[0xff,0x00,0xff],[0xff,0x00,0x00]]
-    const X = x*6/this.width
+    const X = x*6/this._width
     const [r, t] = [Math.floor (X), X - Math.floor (X)]
     const bgd = table[r].map ((v, i) => v + t*(table[r+1][i]-v))
       .map (e=>Math.floor(e).toString(16).padStart(2, "0")) .join('')
 
-    this.cursorColor = "#" + bgd
+    this._cursorColor = "#" + bgd
     this.els["cursor"].style.left = x+"px"
     
-    this.els["cursor"].children[0].style.backgroundColor = this.cursorColor
+    this.els["cursor"].children[0].style.backgroundColor = this._cursorColor
     
-    this.els["gradient"].style.background = this.els["gradient"].style.background.replace(/0%, .* 100%/, `0%, ${this.cursorColor} 100%`)
-    this.updateColor()
+    this.els["gradient"].style.background = this.els["gradient"].style.background.replace(/0%, .* 100%/, `0%, ${this._cursorColor} 100%`)
+    this._updateColor()
   }
-  selectColor (cx, cy) {
-    const h = this.height * 19/20
-    const x = cx > 0 ? (cx < this.width ? cx : this.width) : 0
+  _selectColor (cx, cy) {
+    const h = this._height * 19/20
+    const x = cx > 0 ? (cx < this._width ? cx : this._width) : 0
+    console.log (cx, x)
     const y = cy > 0 ? (cy < h ? cy : h) : 0
     this.els["circle"].style.top =  y + "px"
     this.els["circle"].style.left = x + "px"
-    console.log(x,y)
-    this.updateColor()
+    
+    this._updateColor()
   }
-  updateColor() {
-    const h = this.height * 19/20    
+  _updateColor() {
+    const h = this._height * 19/20    
     const y = this.els["circle"].style.top.slice(0,-2)-0
     const x = this.els["circle"].style.left.slice(0,-2)-0
     
-    const tx = x/this.width
+    const tx = x/this._width
     const ty = y/h
-    let color = this.cursorColor.slice(1)
+    let color = this._cursorColor.slice(1)
     color = [color.slice(0,2), color.slice(2,4), color.slice(-2)].map(e => parseInt(e, 16))
       .map(e => (1-ty)*(255*(1-tx)+ tx*e))
       .map(Math.floor)
       .map(e => e.toString(16).padStart(2, "0"))
       .join('')
       .padStart(7, "#000000")
-    console.log(tx, ty,color)
-    this.color = color
-    this.onchange(color)
+      
+    this.els["circle"].children[0].style.background = this._color = color
+    this._onchange(this.color)
   }
+  get color() {return this._color.toUpperCase()}
 }
 
 /***/ }),
