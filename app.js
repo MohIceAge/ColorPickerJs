@@ -9,7 +9,6 @@ console.log(new ColorPicker (document.getElementById('colorpicker'), {
       const [red, green, blue] = [e.slice(-6,-4),e.slice(-4,-2),e.slice(-2)]
         .map (e=>parseInt(e, 16))
       let gray = (red * 0.3 + green * 0.59 + blue * 0.11)/255
-      console.log (gray)
       if (gray > 0.5) ColorValueDiv.style.color = "black"
       else ColorValueDiv.style.color = "white"
     }

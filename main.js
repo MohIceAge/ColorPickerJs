@@ -14,7 +14,6 @@ module.exports = class {
     this._doc = element.ownerDocument
     const getLocalCoords = (e, target = e.target) => {
       const {top, left} = target.getBoundingClientRect()
-      console.log(e,{top,left}, target.getBoundingClientRect())
       return [e.x-left, e.y-top]
     }
     const callbackSlide = e => this._slide      .apply(this, getLocalCoords(e, this.els.slider))
@@ -46,7 +45,7 @@ module.exports = class {
               style: {
                 position: "absolute",
                 width: "16px", height: "16px",
-                zIndex: "1", left: "100%", top: "0",
+                zIndex: "1", left: this._width+"px", top: "0px",
                 pointerEvents: "none",
               },
               children: [
@@ -95,7 +94,7 @@ module.exports = class {
             this._doc.addEventListener ("mousemove", callbackSlide)
             this._doc.addEventListener ("mouseup", rel)
           },
-          onclick: callbackSlide, id: "alt",
+          onclick: callbackSlide,
           children: [
             {
               id: "cursor",
@@ -105,7 +104,7 @@ module.exports = class {
                 background: "#202020",
                 position: "absolute",
                 pointerEvents: "none",
-                left: "0"
+                left: "0px"
               },
               children: [
                 {
@@ -130,6 +129,7 @@ module.exports = class {
     
     this._element.appendChild(object)
     this.els = elements
+    this._updateColor()
     
   }
   _slide (cx) {
@@ -141,27 +141,28 @@ module.exports = class {
       .map (e=>Math.floor(e).toString(16).padStart(2, "0")) .join('')
 
     this._cursorColor = "#" + bgd
-    this.els["cursor"].style.left = x+"px"
+    this.els.cursor.style.left = x+"px"
     
-    this.els["cursor"].children[0].style.backgroundColor = this._cursorColor
+    this.els.cursor.children[0].style.backgroundColor = this._cursorColor
     
-    this.els["gradient"].style.background = this.els["gradient"].style.background.replace(/0%, .* 100%/, `0%, ${this._cursorColor} 100%`)
+    this.els.gradient.style.background = this.els.gradient.style.background.replace(/0%, .* 100%/, `0%, ${this._cursorColor} 100%`)
     this._updateColor()
   }
   _selectColor (cx, cy) {
+    
     const h = this._height * 19/20
     const x = cx > 0 ? (cx < this._width ? cx : this._width) : 0
-    console.log (cx, x)
     const y = cy > 0 ? (cy < h ? cy : h) : 0
-    this.els["circle"].style.top =  y + "px"
-    this.els["circle"].style.left = x + "px"
+    this.els.circle.style.top =  y + "px"
+    this.els.circle.style.left = x + "px"
     
     this._updateColor()
   }
   _updateColor() {
     const h = this._height * 19/20    
-    const y = this.els["circle"].style.top.slice(0,-2)-0
-    const x = this.els["circle"].style.left.slice(0,-2)-0
+    const y = this.els.circle.style.top.slice(0,-2)-0
+    const x = this.els.circle.style.left.slice(0,-2)-0
+    const previousColor = this.color
     
     const tx = x/this._width
     const ty = y/h
@@ -173,8 +174,8 @@ module.exports = class {
       .join('')
       .padStart(7, "#000000")
       
-    this.els["circle"].children[0].style.background = this._color = color
-    this._onchange(this.color)
+    this.els.circle.children[0].style.background = this._color = color
+    if ( previousColor !== this.color ) this._onchange(this.color)
   }
   get color() {return this._color.toUpperCase()}
 }
